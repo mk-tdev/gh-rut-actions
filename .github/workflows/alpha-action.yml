@@ -1,0 +1,10 @@
+name:  alpha workflow
+on:  workflow_dispatch
+jobs:
+  alpha-job:
+    runs-on: ubuntu-latest
+    steps:
+      - name: print greeting
+        run: echo "Hello Alpha!"
+      - name: print goodbye
+        run: echo "Bye Alpha!"

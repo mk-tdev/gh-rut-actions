@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import TodoInput from "./TodoInput";
+import TodoInput from "../TodoInput";
 
 describe("TodoInput", () => {
   it("renders input field with placeholder", () => {

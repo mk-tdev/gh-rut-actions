@@ -1,7 +1,7 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import TodoApp from "./TodoApp";
+import TodoApp from "../TodoApp";
 
 describe("TodoApp", () => {
   beforeEach(() => {
@@ -387,6 +387,9 @@ describe("TodoApp", () => {
     });
 
     it("handles corrupted session storage data gracefully", () => {
+      // Suppress expected console.error from sessionStorage utility
+      const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+      
       window.sessionStorage.setItem("todos", "{ invalid json }");
       
       render(<TodoApp />);
@@ -394,6 +397,11 @@ describe("TodoApp", () => {
       // Should render without crashing and show no todos
       expect(screen.getByText("Todo App")).toBeInTheDocument();
       expect(screen.queryByRole("listitem")).not.toBeInTheDocument();
+      
+      // Verify error was logged (but suppressed from output)
+      expect(consoleErrorSpy).toHaveBeenCalled();
+      
+      consoleErrorSpy.mockRestore();
     });
   });
 });

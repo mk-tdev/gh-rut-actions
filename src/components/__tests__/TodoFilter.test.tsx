@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import TodoFilter from "./TodoFilter";
+import TodoFilter from "../TodoFilter";
 
 describe("TodoFilter", () => {
   it("renders all filter buttons", () => {

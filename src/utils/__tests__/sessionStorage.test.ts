@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { sessionStorage } from "./sessionStorage";
+import { sessionStorage } from "../sessionStorage";
 
 describe("sessionStorage utility", () => {
   beforeEach(() => {
@@ -122,17 +122,17 @@ describe("sessionStorage utility", () => {
 
     it("returns false and logs error on failure", () => {
       const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
-      const setItemSpy = vi
-        .spyOn(window.sessionStorage, "setItem")
-        .mockImplementation(() => {
-          throw new Error("Storage quota exceeded");
-        });
+      
+      // Mock JSON.stringify to throw an error
+      const stringifySpy = vi.spyOn(JSON, "stringify").mockImplementation(() => {
+        throw new Error("Stringify failed");
+      });
 
       const result = sessionStorage.setItem("key", "value");
       expect(result).toBe(false);
       expect(consoleSpy).toHaveBeenCalled();
 
-      setItemSpy.mockRestore();
+      stringifySpy.mockRestore();
       consoleSpy.mockRestore();
     });
   });
@@ -152,11 +152,11 @@ describe("sessionStorage utility", () => {
 
     it("returns false and logs error on failure", () => {
       const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
-      const removeItemSpy = vi
-        .spyOn(window.sessionStorage, "removeItem")
-        .mockImplementation(() => {
-          throw new Error("Remove failed");
-        });
+      
+      // Create a getter that throws an error
+      const removeItemSpy = vi.spyOn(Storage.prototype, "removeItem").mockImplementation(() => {
+        throw new Error("Remove failed");
+      });
 
       const result = sessionStorage.removeItem("key");
       expect(result).toBe(false);
@@ -185,11 +185,10 @@ describe("sessionStorage utility", () => {
 
     it("returns false and logs error on failure", () => {
       const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
-      const clearSpy = vi
-        .spyOn(window.sessionStorage, "clear")
-        .mockImplementation(() => {
-          throw new Error("Clear failed");
-        });
+      
+      const clearSpy = vi.spyOn(Storage.prototype, "clear").mockImplementation(() => {
+        throw new Error("Clear failed");
+      });
 
       const result = sessionStorage.clear();
       expect(result).toBe(false);
@@ -207,11 +206,9 @@ describe("sessionStorage utility", () => {
     });
 
     it("returns false when session storage is not available", () => {
-      const setItemSpy = vi
-        .spyOn(window.sessionStorage, "setItem")
-        .mockImplementation(() => {
-          throw new Error("Not available");
-        });
+      const setItemSpy = vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
+        throw new Error("Not available");
+      });
 
       const result = sessionStorage.isAvailable();
       expect(result).toBe(false);

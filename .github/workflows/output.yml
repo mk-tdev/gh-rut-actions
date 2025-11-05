@@ -1,0 +1,10 @@
+name: output workflow
+on: [workflow_dispatch]
+jobs:
+  output-job:
+    runs-on: ubuntu-latest
+    steps:
+      - name: print greeting
+        run: echo "Hello Output!"
+      - name: Output github context
+        run: echo "${{ toJson(github) }}"

@@ -1,9 +1,19 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import TodoApp from "./TodoApp";
 
 describe("TodoApp", () => {
+  beforeEach(() => {
+    // Clear session storage before each test
+    window.sessionStorage.clear();
+  });
+
+  afterEach(() => {
+    // Clean up after each test
+    window.sessionStorage.clear();
+  });
+
   it("renders the todo app heading", () => {
     render(<TodoApp />);
     expect(screen.getByText("Todo App")).toBeInTheDocument();
@@ -254,5 +264,136 @@ describe("TodoApp", () => {
     
     expect(screen.getByText("Updated")).toBeInTheDocument();
     expect(screen.queryByText("Original")).not.toBeInTheDocument();
+  });
+
+  describe("Session Storage Persistence", () => {
+    it("loads todos from session storage on mount", () => {
+      const existingTodos = [
+        { id: 1, text: "Existing todo 1", completed: false },
+        { id: 2, text: "Existing todo 2", completed: true },
+      ];
+      
+      window.sessionStorage.setItem("todos", JSON.stringify(existingTodos));
+      
+      render(<TodoApp />);
+      
+      expect(screen.getByText("Existing todo 1")).toBeInTheDocument();
+      expect(screen.getByText("Existing todo 2")).toBeInTheDocument();
+    });
+
+    it("saves todos to session storage when adding a new todo", async () => {
+      const user = userEvent.setup();
+      render(<TodoApp />);
+      
+      const input = screen.getByPlaceholderText("What needs to be done?");
+      await user.type(input, "New todo{Enter}");
+      
+      const stored = JSON.parse(window.sessionStorage.getItem("todos") || "[]");
+      expect(stored).toHaveLength(1);
+      expect(stored[0].text).toBe("New todo");
+      expect(stored[0].completed).toBe(false);
+    });
+
+    it("saves todos to session storage when toggling completion", async () => {
+      const user = userEvent.setup();
+      render(<TodoApp />);
+      
+      const input = screen.getByPlaceholderText("What needs to be done?");
+      await user.type(input, "Toggle me{Enter}");
+      
+      const checkbox = screen.getByRole("checkbox", { name: /toggle toggle me/i });
+      await user.click(checkbox);
+      
+      const stored = JSON.parse(window.sessionStorage.getItem("todos") || "[]");
+      expect(stored[0].completed).toBe(true);
+    });
+
+    it("saves todos to session storage when deleting a todo", async () => {
+      const user = userEvent.setup();
+      render(<TodoApp />);
+      
+      const input = screen.getByPlaceholderText("What needs to be done?");
+      await user.type(input, "Delete me{Enter}");
+      await user.type(input, "Keep me{Enter}");
+      
+      const deleteButton = screen.getByRole("button", { name: /delete delete me/i });
+      await user.click(deleteButton);
+      
+      const stored = JSON.parse(window.sessionStorage.getItem("todos") || "[]");
+      expect(stored).toHaveLength(1);
+      expect(stored[0].text).toBe("Keep me");
+    });
+
+    it("saves todos to session storage when editing a todo", async () => {
+      const user = userEvent.setup();
+      render(<TodoApp />);
+      
+      const input = screen.getByPlaceholderText("What needs to be done?");
+      await user.type(input, "Original text{Enter}");
+      
+      const todoText = screen.getByText("Original text");
+      await user.dblClick(todoText);
+      
+      const editInput = screen.getByLabelText(/edit todo input/i);
+      await user.clear(editInput);
+      await user.type(editInput, "Edited text");
+      fireEvent.blur(editInput);
+      
+      const stored = JSON.parse(window.sessionStorage.getItem("todos") || "[]");
+      expect(stored[0].text).toBe("Edited text");
+    });
+
+    it("saves todos to session storage when clearing completed", async () => {
+      const user = userEvent.setup();
+      render(<TodoApp />);
+      
+      const input = screen.getByPlaceholderText("What needs to be done?");
+      await user.type(input, "Task 1{Enter}");
+      await user.type(input, "Task 2{Enter}");
+      
+      const checkbox = screen.getByRole("checkbox", { name: /toggle task 1/i });
+      await user.click(checkbox);
+      
+      const clearButton = screen.getByRole("button", { name: /clear completed todos/i });
+      await user.click(clearButton);
+      
+      const stored = JSON.parse(window.sessionStorage.getItem("todos") || "[]");
+      expect(stored).toHaveLength(1);
+      expect(stored[0].text).toBe("Task 2");
+    });
+
+    it("persists todos across component remounts", async () => {
+      const user = userEvent.setup();
+      const { unmount } = render(<TodoApp />);
+      
+      const input = screen.getByPlaceholderText("What needs to be done?");
+      await user.type(input, "Persistent todo{Enter}");
+      
+      // Unmount the component
+      unmount();
+      
+      // Remount the component
+      render(<TodoApp />);
+      
+      // Todo should still be there
+      expect(screen.getByText("Persistent todo")).toBeInTheDocument();
+    });
+
+    it("handles empty session storage gracefully", () => {
+      render(<TodoApp />);
+      
+      expect(screen.getByText("Todo App")).toBeInTheDocument();
+      expect(screen.queryByRole("listitem")).not.toBeInTheDocument();
+    });
+
+    it("handles corrupted session storage data gracefully", () => {
+      window.sessionStorage.setItem("todos", "{ invalid json }");
+      
+      render(<TodoApp />);
+      
+      // Should render without crashing and show no todos
+      expect(screen.getByText("Todo App")).toBeInTheDocument();
+      expect(screen.queryByRole("listitem")).not.toBeInTheDocument();
+    });
   });
 });

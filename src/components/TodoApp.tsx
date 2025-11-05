@@ -1,16 +1,25 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "./TodoApp.css";
+import type { Todo } from "./types";
+import TodoInput from "./TodoInput";
+import TodoFilter from "./TodoFilter";
+import TodoList from "./TodoList";
+import TodoFooter from "./TodoFooter";
+import { sessionStorage } from "../utils/sessionStorage";
 
-export interface Todo {
-  id: number;
-  text: string;
-  completed: boolean;
-}
+const TODOS_STORAGE_KEY = "todos";
 
 export default function TodoApp() {
-  const [todos, setTodos] = useState<Todo[]>([]);
+  const [todos, setTodos] = useState<Todo[]>(() => {
+    return sessionStorage.getItem<Todo[]>(TODOS_STORAGE_KEY, []);
+  });
   const [inputValue, setInputValue] = useState("");
   const [filter, setFilter] = useState<"all" | "active" | "completed">("all");
+
+  // Save todos to session storage whenever they change
+  useEffect(() => {
+    sessionStorage.setItem(TODOS_STORAGE_KEY, todos);
+  }, [todos]);
 
   const addTodo = () => {
     if (inputValue.trim() === "") return;
@@ -56,153 +65,39 @@ export default function TodoApp() {
   });
 
   const activeTodoCount = todos.filter((todo) => !todo.completed).length;
+  const hasCompleted = todos.some((todo) => todo.completed);
 
   return (
     <div className="todo-app">
       <h1>Todo App</h1>
       
-      <div className="todo-input-container">
-        <input
-          type="text"
-          className="todo-input"
-          placeholder="What needs to be done?"
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && addTodo()}
-          aria-label="New todo input"
-        />
-        <button onClick={addTodo} className="add-button" aria-label="Add todo">
-          Add
-        </button>
-      </div>
+      <TodoInput
+        value={inputValue}
+        onChange={setInputValue}
+        onAdd={addTodo}
+      />
 
       {todos.length > 0 && (
         <>
-          <div className="filter-buttons">
-            <button
-              className={filter === "all" ? "active" : ""}
-              onClick={() => setFilter("all")}
-              aria-label="Show all todos"
-            >
-              All
-            </button>
-            <button
-              className={filter === "active" ? "active" : ""}
-              onClick={() => setFilter("active")}
-              aria-label="Show active todos"
-            >
-              Active
-            </button>
-            <button
-              className={filter === "completed" ? "active" : ""}
-              onClick={() => setFilter("completed")}
-              aria-label="Show completed todos"
-            >
-              Completed
-            </button>
-          </div>
+          <TodoFilter
+            currentFilter={filter}
+            onFilterChange={setFilter}
+          />
 
-          <ul className="todo-list">
-            {filteredTodos.map((todo) => (
-              <TodoItem
-                key={todo.id}
-                todo={todo}
-                onToggle={toggleTodo}
-                onDelete={deleteTodo}
-                onEdit={editTodo}
-              />
-            ))}
-          </ul>
+          <TodoList
+            todos={filteredTodos}
+            onToggle={toggleTodo}
+            onDelete={deleteTodo}
+            onEdit={editTodo}
+          />
 
-          <div className="todo-footer">
-            <span className="todo-count">
-              {activeTodoCount} {activeTodoCount === 1 ? "item" : "items"} left
-            </span>
-            {todos.some((todo) => todo.completed) && (
-              <button
-                onClick={clearCompleted}
-                className="clear-completed"
-                aria-label="Clear completed todos"
-              >
-                Clear completed
-              </button>
-            )}
-          </div>
+          <TodoFooter
+            activeCount={activeTodoCount}
+            hasCompleted={hasCompleted}
+            onClearCompleted={clearCompleted}
+          />
         </>
       )}
     </div>
-  );
-}
-
-interface TodoItemProps {
-  todo: Todo;
-  onToggle: (id: number) => void;
-  onDelete: (id: number) => void;
-  onEdit: (id: number, newText: string) => void;
-}
-
-function TodoItem({ todo, onToggle, onDelete, onEdit }: TodoItemProps) {
-  const [isEditing, setIsEditing] = useState(false);
-  const [editText, setEditText] = useState(todo.text);
-
-  const handleEdit = () => {
-    if (editText.trim() === "") {
-      onDelete(todo.id);
-    } else {
-      onEdit(todo.id, editText.trim());
-      setIsEditing(false);
-    }
-  };
-
-  const handleCancel = () => {
-    setEditText(todo.text);
-    setIsEditing(false);
-  };
-
-  return (
-    <li className={`todo-item ${todo.completed ? "completed" : ""}`}>
-      {isEditing ? (
-        <div className="edit-container">
-          <input
-            type="text"
-            className="edit-input"
-            value={editText}
-            onChange={(e) => setEditText(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") handleEdit();
-              if (e.key === "Escape") handleCancel();
-            }}
-            onBlur={handleEdit}
-            autoFocus
-            aria-label="Edit todo input"
-          />
-        </div>
-      ) : (
-        <>
-          <input
-            type="checkbox"
-            checked={todo.completed}
-            onChange={() => onToggle(todo.id)}
-            className="todo-checkbox"
-            aria-label={`Toggle ${todo.text}`}
-          />
-          <span
-            className="todo-text"
-            onDoubleClick={() => setIsEditing(true)}
-            role="button"
-            tabIndex={0}
-          >
-            {todo.text}
-          </span>
-          <button
-            onClick={() => onDelete(todo.id)}
-            className="delete-button"
-            aria-label={`Delete ${todo.text}`}
-          >
-            ×
-          </button>
-        </>
-      )}
-    </li>
   );
 }

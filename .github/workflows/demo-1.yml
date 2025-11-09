@@ -1,14 +1,27 @@
 name: Demo One
 on:
   pull_request:
-    types: [opened, synchronize, reopened]
+    types:
+      - opened
+      - reopened
+      - synchronize
+    branches:
+      - main
+
   workflow_dispatch:
+  push:
+    branches:
+      - main # matches the main branch
+      - "dev-*" # matches dev-feature, dev-bugfix, etc.
+      - "feature/**" # matches feature/xyz, feature/abc/def, etc.
+    paths-ignore:
+      - ".github/workflows/*" # ignores changes to workflow files
 jobs:
   demo:
     runs-on: ubuntu-latest
     steps:
       - name: output event data
-        run: echo "${{ toJson(github.event) }}"
+        run: echo "${{ toJson(github.event) }}" # outputs the entire event payload
       - name: Checkout
         uses: actions/checkout@v4
       - name: Setup Node.js

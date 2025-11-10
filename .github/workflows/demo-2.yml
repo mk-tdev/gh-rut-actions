@@ -32,6 +32,13 @@ jobs:
         run: npm ci
       - name: Build
         run: npm run build
+      - name: Archive Production Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: production-artifacts
+          path: |
+            dist
+            package.json
   deploy:
     needs: build
     runs-on: ubuntu-latest

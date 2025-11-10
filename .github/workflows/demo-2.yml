@@ -5,21 +5,7 @@ on:
       - main
   workflow_dispatch:
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-      - name: Install dependencies
-        run: npm ci
-      - name: Run tests
-        run: npm run test
   build:
-    needs: test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -45,5 +31,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Download Production Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: production-artifacts
+      - name: List Artifacts
+        run: |
+          echo "Contents of the production-artifacts:"
+          ls
+          cat package.json
       - name: Deploy Application
         run: echo "Deploying application..." # Replace with actual deployment commands

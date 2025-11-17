@@ -6,4 +6,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Clear Npm Cache on github actions
-        run: gh cache delete -all
+        run: gh cache delete -a

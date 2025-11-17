@@ -4,6 +4,13 @@ on:
     branches:
       - main
   workflow_dispatch:
+env:
+  NODE_ENV: production
+  VITE_APP_NAME: Its Todo Application
+  VITE_ENABLE_LOCAL_STORAGE: "true"
+  VITE_ENABLE_DEMO_MODE: "false"
+  VITE_LOG_LEVEL: info
+  VITE_STORAGE_KEY_PREFIX: todos
 jobs:
   test:
     runs-on: ubuntu-latest

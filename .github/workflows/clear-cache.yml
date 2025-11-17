@@ -1,0 +1,9 @@
+name: Clear Npm Cache
+on:
+  workflow_dispatch:
+jobs:
+  clear-cache:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clear Npm Cache on github actions
+        run: gh cache delete dependency-cache-* --confirm

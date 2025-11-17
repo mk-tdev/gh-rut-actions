@@ -11,6 +11,7 @@ env:
   VITE_ENABLE_DEMO_MODE: "false"
   VITE_LOG_LEVEL: info
   VITE_STORAGE_KEY_PREFIX: todos
+  VITE_TEST_MODE: "false"
 jobs:
   test:
     runs-on: ubuntu-latest

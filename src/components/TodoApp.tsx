@@ -6,6 +6,7 @@ import TodoFilter from "./TodoFilter";
 import TodoList from "./TodoList";
 import TodoFooter from "./TodoFooter";
 import { sessionStorage } from "../utils/sessionStorage";
+import { ENV } from "../utils/env";
 
 const TODOS_STORAGE_KEY = "todos";
 
@@ -23,13 +24,13 @@ export default function TodoApp() {
 
   const addTodo = () => {
     if (inputValue.trim() === "") return;
-    
+
     const newTodo: Todo = {
       id: Date.now(),
       text: inputValue.trim(),
       completed: false,
     };
-    
+
     setTodos([...todos, newTodo]);
     setInputValue("");
   };
@@ -48,9 +49,7 @@ export default function TodoApp() {
 
   const editTodo = (id: number, newText: string) => {
     setTodos(
-      todos.map((todo) =>
-        todo.id === id ? { ...todo, text: newText } : todo
-      )
+      todos.map((todo) => (todo.id === id ? { ...todo, text: newText } : todo))
     );
   };
 
@@ -69,20 +68,13 @@ export default function TodoApp() {
 
   return (
     <div className="todo-app">
-      <h1>Todo App</h1>
-      
-      <TodoInput
-        value={inputValue}
-        onChange={setInputValue}
-        onAdd={addTodo}
-      />
+      <h1>{ENV.appName}</h1>
+
+      <TodoInput value={inputValue} onChange={setInputValue} onAdd={addTodo} />
 
       {todos.length > 0 && (
         <>
-          <TodoFilter
-            currentFilter={filter}
-            onFilterChange={setFilter}
-          />
+          <TodoFilter currentFilter={filter} onFilterChange={setFilter} />
 
           <TodoList
             todos={filteredTodos}

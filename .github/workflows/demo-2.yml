@@ -5,6 +5,8 @@ on:
       - main
       - working-branch
   workflow_dispatch:
+env:
+  NODE_ENV: production
 jobs:
   test:
     runs-on: ubuntu-latest

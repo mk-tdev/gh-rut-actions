@@ -67,7 +67,7 @@ export default function TodoApp() {
 
   return (
     <div className="todo-app">
-      <h1>{import.meta.env.VITE_APP_NAME || "Todo App"}</h1>
+      <h1>{"Todo App"}</h1>
 
       <TodoInput value={inputValue} onChange={setInputValue} onAdd={addTodo} />
 

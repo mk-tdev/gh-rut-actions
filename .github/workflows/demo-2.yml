@@ -5,10 +5,6 @@ on:
       - main
       - working-branch
   workflow_dispatch:
-env:
-  NODE_ENV: production
-  VITE_APP_NAME: Its Todo Application
-  VITE_STORAGE_KEY_PREFIX: todos
 jobs:
   test:
     runs-on: ubuntu-latest
